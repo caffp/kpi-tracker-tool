@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #29231f;
+      font-family: 'DM Sans', 'Trebuchet MS', sans-serif;
+    }
+    .dropzone {
+      position: relative;
+      display: flex;
+      min-height: 238px;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1.5px dashed #e6a27d;
+      border-radius: 10px;
+      background: #fff;
+      text-align: center;
+      transition: border-color .16s ease, background .16s ease;
+    }
+    .dropzone.active, .dropzone:hover {
+      border-color: #e66c32;
+      background: #fff8f2;
+    }
+    .content { padding: 24px; }
+    .icon {
+      display: grid;
+      width: 46px;
+      height: 46px;
+      margin: 0 auto 13px;
+      place-items: center;
+      border-radius: 50%;
+      background: #fff0e6;
+      color: #c95527;
+      font-size: 21px;
+    }
+    h2 { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
+    p { margin: 0; color: #82776e; font-size: 13px; line-height: 1.55; }
+    .browse {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #b94a20;
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      font: inherit;
+    }
+    .file-name {
+      display: none;
+      max-width: 90%;
+      margin: 10px auto 0;
+      overflow: hidden;
+      color: #b94a20;
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    input { display: none; }
+    .hint { margin-top: 12px; font-size: 11px; }
+    @media (max-height: 700px) { .dropzone { min-height: 205px; } }
+    @media (max-width: 600px) {
+      .dropzone { min-height: 198px; }
+      .content { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dropzone" id="dropzone" tabindex="0">
+    <div class="content">
+      <div class="icon">&#8593;</div>
+      <h2>Drop your CSV file here</h2>
+      <p>or <button class="browse" id="browse" type="button">browse files</button></p>
+      <p class="hint">Click this box, then press Ctrl+V to paste CSV or a copied file</p>
+      <div class="file-name" id="file-name"></div>
+    </div>
+    <input id="file" type="file" accept=".csv,text/csv,text/plain" aria-label="Choose a CSV file">
+  </div>
+  <script>
+    const zone = document.getElementById('dropzone');
+    const input = document.getElementById('file');
+    const browse = document.getElementById('browse');
+    const filename = document.getElementById('file-name');
+    let pasteTarget = false;
+
+    function sendCsv(file, text) {
+      filename.textContent = file.name || 'Pasted CSV';
+      filename.style.display = 'block';
+      window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: 'streamlit:setComponentValue',
+        value: { name: file.name || 'pasted.csv', csv: text },
+        dataType: 'json'
+      }, '*');
+    }
+
+    async function readFile(file) {
+      if (!file) return;
+      sendCsv(file, await file.text());
+    }
+
+    input.addEventListener('change', () => readFile(input.files[0]));
+    zone.addEventListener('click', () => { pasteTarget = true; });
+    browse.addEventListener('click', (event) => {
+      event.stopPropagation();
+      pasteTarget = true;
+      input.click();
+    });
+    zone.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      zone.classList.add('active');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('active'));
+    zone.addEventListener('drop', (event) => {
+      event.preventDefault();
+      zone.classList.remove('active');
+      const file = event.dataTransfer.files[0];
+      if (file) readFile(file);
+      else {
+        const text = event.dataTransfer.getData('text/plain');
+        if (text) sendCsv({ name: 'pasted.csv' }, text);
+      }
+    });
+    document.addEventListener('paste', (event) => {
+      if (!pasteTarget) return;
+      const fileItem = Array.from(event.clipboardData.items).find((item) => item.kind === 'file');
+      if (fileItem) {
+        readFile(fileItem.getAsFile());
+        event.preventDefault();
+        return;
+      }
+      const text = event.clipboardData.getData('text/plain');
+      if (text) {
+        sendCsv({ name: 'pasted.csv' }, text);
+        event.preventDefault();
+      }
+    });
+
+    window.parent.postMessage({ isStreamlitMessage: true, type: 'streamlit:componentReady', apiVersion: 1 }, '*');
+    window.parent.postMessage({ isStreamlitMessage: true, type: 'streamlit:setFrameHeight', height: 245 }, '*');
+  </script>
+</body>
+</html>
