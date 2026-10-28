@@ -11,7 +11,7 @@ import altair as alt
 from processing import OUTPUT_COLUMNS, summarize_routes
 
 
-st.set_page_config(page_title="Route file cleaner", page_icon="R", layout="centered")
+st.set_page_config(page_title="KPI Tracker Helper", page_icon="🚚", layout="centered")
 
 st.markdown(
     """
@@ -103,11 +103,8 @@ st.markdown(
         .intro { margin-bottom: .8rem; }
     }
     </style>
-    <div class="brand"><span class="brand-mark">R</span> ROUTE DESK</div>
-    <div class="intro">
-      <div class="eyebrow">CSV WORKSPACE</div>
-      <h1>Clean up your route file.</h1>
-      <p>Drop a CSV, choose a file, or paste it right here.</p>
+    <div class="brand"><span class="brand-mark">🚚</span> HONK HONK, feed me data!</div>
+      <div class="eyebrow"><i>(seriously, please feed him)</i></div>
     </div>
     """,
     unsafe_allow_html=True,
