@@ -30,7 +30,7 @@ def summarize_routes(frame: pd.DataFrame) -> tuple[pd.DataFrame, int, int]:
     routes["_Appliance"] = requirements.eq("BXAPPLIANCE").fillna(False).astype(int)
     routes["_Package"] = requirements.isin(["STH", "BOX"]).astype(int)
     routes["_Revisits"] = scopes.isin(
-        ["MO Agent Svc", "MO Other", "MO Replacement"]
+        ["MO Return", "MO Other", "MO Replacement"]
     ).astype(int)
 
     summary = (
